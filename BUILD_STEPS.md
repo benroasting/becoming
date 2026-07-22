@@ -2,23 +2,23 @@
 
 Ordered phases. Each one should be working end-to-end before moving to the next. See `PLANNING.md` for the domain model and API surface these implement.
 
-## 1. Scaffold — in progress
+## 1. Scaffold — done
 
 - [x] `go mod init github.com/benroasting/becoming`
-- [ ] `cmd/server/main.go` — config load, DB pool, router, graceful shutdown
-- [ ] `internal/config/config.go` — `PORT`, `ENVIRONMENT`, `LOG_LEVEL`, `DATABASE_URL`
-- [ ] `internal/database/database.go` — `pgxpool.Pool` from `DATABASE_URL`
-- [ ] `internal/handlers/health.go` + `router.go` — Chi router, `/health` only
-- [ ] `docker-compose.yml` — Postgres service for local dev
-- [ ] `migrations/` folder ready, migrate tooling decided (CLI vs programmatic)
-- [ ] **Done when:** `docker-compose up -d && go run ./cmd/server` then `curl localhost:8080/health` returns 200
+- [x] `cmd/server/main.go` — config load, DB pool, router, graceful shutdown
+- [x] `internal/config/config.go` — `PORT`, `ENVIRONMENT`, `LOG_LEVEL`, `DATABASE_URL`
+- [x] `internal/database/database.go` — `pgxpool.Pool` from `DATABASE_URL`
+- [x] `internal/handlers/health.go` + `router.go` — Chi router, `/health` only
+- [x] `docker-compose.yml` — Postgres service for local dev (host port 5433, not 5432 — already claimed by another project on this machine)
+- [ ] `migrations/` folder ready, migrate tooling decided (CLI vs programmatic) — carried into step 2, first real migration needed there anyway
+- [x] **Done when:** `docker compose up -d && go run ./cmd/server` then `curl localhost:8081/health` returns 200 (port 8081, not 8080 — also already claimed locally)
 
-## 2. Value — end to end
+## 2. Value — end to end — in progress
 
-- [ ] Migration: `values` table (id, name, description, status, created_at, updated_at)
-- [ ] Model, repository (CRUD + archive/unarchive)
-- [ ] Handlers + router wiring
-- [ ] **Done when:** can create, list, update, and archive a Value via curl
+- [x] Migration: `core_values` table (id, title, description, status, created_at, updated_at) — status is `active`/`abandoned` only, see [ADR 0001](docs/adr/0001-value-status-lifecycle.md)
+- [ ] Model, repository (CRUD + `abandon`, no reactivate; "pursuing" computed from habit/goal links, not stored) — in progress
+- [ ] Handlers + router wiring (`POST /values/{id}/abandon`, not a generic archive/unarchive pair)
+- [ ] **Done when:** can create, list, update, and abandon a Value via curl
 
 ## 3. Habit + join tables
 

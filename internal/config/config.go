@@ -14,11 +14,11 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		Port:        getEnv("PORT", "8080"),
+		Port:        getEnv("PORT", "8081"),
 		Environment: getEnv("ENVIRONMENT", "development"),
 		LogLevel:    parseLogLevel(getEnv("LOG_LEVEL", "info")),
 		DatabaseURL: getEnv("DATABASE_URL",
-			"postgres://becoming:becoming@localhost:5432/becoming?sslmode=disable"),
+			"postgres://becoming:becoming@localhost:5433/becoming?sslmode=disable"),
 	}
 }
 
