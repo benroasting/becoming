@@ -13,23 +13,25 @@ Ordered phases. Each one should be working end-to-end before moving to the next.
 - [ ] `migrations/` folder ready, migrate tooling decided (CLI vs programmatic) — carried into step 2, first real migration needed there anyway
 - [x] **Done when:** `docker compose up -d && go run ./cmd/server` then `curl localhost:8081/health` returns 200 (port 8081, not 8080 — also already claimed locally)
 
-## 2. Value — end to end — in progress
+## 2. Value — done
 
 - [x] Migration: `core_values` table (id, title, description, status, created_at, updated_at) — status is `active`/`abandoned` only, see [ADR 0001](docs/adr/0001-value-status-lifecycle.md)
-- [ ] Model, repository (CRUD + `abandon`, no reactivate; "pursuing" computed from habit/goal links, not stored) — in progress
-- [ ] Handlers + router wiring (`POST /values/{id}/abandon`, not a generic archive/unarchive pair)
-- [ ] **Done when:** can create, list, update, and abandon a Value via curl
+- [x] Model, repository (CRUD + `abandon`, no reactivate; "pursuing" computed from habit/goal links, not stored — the computed-field wiring itself is deferred to when Habit/Goal exist to compute it from)
+- [x] Handlers + router wiring (`POST /values/{id}/abandon`, not a generic archive/unarchive pair)
+- [x] **Done when:** can create, list, update, and abandon a Value via curl — confirmed 2026-07-22, including abandon-twice correctly returning 404
 
-## 3. Habit + join tables
+## 3. Habit + Value join table
 
-- [ ] Migration: `habits` table (reuse `is_active` as archive flag) + `habit_values` and `habit_goals` join tables
+- [x] Migration: `habits` table (reuse `is_active` as archive flag) + `habit_values` join table only — `habit_goals` moves to step 4 (see below)
+- [x] `habit_values`: composite `PRIMARY KEY (habit_id, value_id)`, no surrogate id column; `ON DELETE CASCADE` on both FKs (hygiene only — never fires in normal use, since Habit/Value both archive rather than hard-delete); plus a secondary index on `value_id` alone (the PK's leading column covers "values for this habit," but "habits for this value" needs its own index)
 - [ ] Model, repository (CRUD + archive + association writes, ≥1 value enforced)
 - [ ] Handlers + router wiring
 - [ ] **Done when:** can create a habit tagged to multiple values, and archiving hides it without deleting its future check-in history
 
-## 4. Goal + join table
+## 4. Goal + Value/Habit join tables
 
-- [ ] Migration: `goals` table (status enum) + `goal_values` join table (reuses `habit_goals` from step 3)
+- [ ] Migration: `goals` table (status enum) + `goal_values` **and `habit_goals`** join tables — `habit_goals` had to wait until now since it references `goals(id)`, which didn't exist in step 3
+- [ ] Same join-table shape as step 3: composite PKs, `ON DELETE CASCADE`, secondary index on `goal_id` in `habit_goals` (this is the more important direction here — "habits under this goal" is a core query)
 - [ ] Model, repository (CRUD; requires ≥1 existing `habit_id` and `value_id` at creation)
 - [ ] Handlers + router wiring
 - [ ] **Done when:** creating a goal with no habits is rejected; creating one with existing habits works

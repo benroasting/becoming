@@ -7,7 +7,7 @@ import (
 	"github.com/benroasting/becoming/internal/config"
 )
 
-func NewRouter(cfg *config.Config, valueHandler *ValueHandler) *chi.Mux {
+func NewRouter(cfg *config.Config, valueHandler *ValueHandler, habitHandler *HabitHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Middleware
@@ -27,6 +27,14 @@ func NewRouter(cfg *config.Config, valueHandler *ValueHandler) *chi.Mux {
 			r.Get("/{id}", valueHandler.GetByID)
 			r.Put("/{id}", valueHandler.Update)
 			r.Post("/{id}/abandon", valueHandler.Abandon)
+		})
+
+		r.Route("/habits", func(r chi.Router) {
+				r.Get("/", habitHandler.List)
+				r.Post("/", habitHandler.Create)
+				r.Get("/{id}", habitHandler.GetByID)
+				r.Put("/{id}", habitHandler.Update)
+				r.Post("/{id}/archive", habitHandler.Archive)
 		})
 	})
 

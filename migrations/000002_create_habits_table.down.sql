@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS habit_values;
+DROP TABLE IF EXISTS habits;

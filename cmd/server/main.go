@@ -36,9 +36,11 @@ func main() {
 
 	valueRepo := repository.NewValueRepository(pool)
 	valueHandler := handlers.NewValueHandler(valueRepo)
+	habitRepo := repository.NewHabitRepository(pool)
+	habitHandler := handlers.NewHabitHandler(habitRepo)
 
 	// router
-	router := handlers.NewRouter(cfg, valueHandler)
+	router := handlers.NewRouter(cfg, valueHandler, habitHandler)
 
 	// create server
 	server := &http.Server{
