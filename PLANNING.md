@@ -33,7 +33,7 @@ Single-user for v1 — no auth, no `users` table, deliberately deferred (matches
 ## API surface (v1)
 
 - **Values** — `GET/POST /values`, `GET/PUT /values/{id}`, `POST /values/{id}/abandon` (terminal, no reactivate — [ADR 0001](docs/adr/0001-value-status-lifecycle.md)). No DELETE.
-- **Habits** — `GET/POST /habits` (`value_ids[]` ≥1, `goal_ids[]` optional), `GET/PUT /habits/{id}`, `PATCH /habits/{id}/archive`.
+- **Habits** — `GET/POST /habits` (`value_ids[]` ≥1, `goal_ids[]` optional), `GET/PUT /habits/{id}`, `POST /habits/{id}/archive`.
 - **Goals** — `GET/POST /goals` (`value_ids[]` ≥1, `habit_ids[]` ≥1, both existing), `GET/PUT /goals/{id}`.
 - **CheckIns** — `POST/GET /habits/{id}/check-ins`.
 - **Journal** — full CRUD on `/journal-entries` (`value_ids[]` optional tag).

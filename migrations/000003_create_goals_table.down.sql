@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS habit_goals;
+DROP TABLE IF EXISTS goal_values;
+DROP TABLE IF EXISTS goals;

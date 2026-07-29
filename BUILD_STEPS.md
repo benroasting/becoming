@@ -24,17 +24,17 @@ Ordered phases. Each one should be working end-to-end before moving to the next.
 
 - [x] Migration: `habits` table (reuse `is_active` as archive flag) + `habit_values` join table only — `habit_goals` moves to step 4 (see below)
 - [x] `habit_values`: composite `PRIMARY KEY (habit_id, value_id)`, no surrogate id column; `ON DELETE CASCADE` on both FKs (hygiene only — never fires in normal use, since Habit/Value both archive rather than hard-delete); plus a secondary index on `value_id` alone (the PK's leading column covers "values for this habit," but "habits for this value" needs its own index)
-- [ ] Model, repository (CRUD + archive + association writes, ≥1 value enforced)
-- [ ] Handlers + router wiring
-- [ ] **Done when:** can create a habit tagged to multiple values, and archiving hides it without deleting its future check-in history
+- [x] Model, repository (CRUD + archive + association writes, ≥1 value enforced)
+- [x] Handlers + router wiring
+- [x] **Done when:** can create a habit tagged to multiple values, and archiving hides it without deleting its future check-in history — confirmed 2026-07-28 via curl, including ≥1-value enforcement on create/update (400) and archive-twice correctly returning 404
 
 ## 4. Goal + Value/Habit join tables
 
-- [ ] Migration: `goals` table (status enum) + `goal_values` **and `habit_goals`** join tables — `habit_goals` had to wait until now since it references `goals(id)`, which didn't exist in step 3
-- [ ] Same join-table shape as step 3: composite PKs, `ON DELETE CASCADE`, secondary index on `goal_id` in `habit_goals` (this is the more important direction here — "habits under this goal" is a core query)
-- [ ] Model, repository (CRUD; requires ≥1 existing `habit_id` and `value_id` at creation)
-- [ ] Handlers + router wiring
-- [ ] **Done when:** creating a goal with no habits is rejected; creating one with existing habits works
+- [x] Migration: `goals` table (status enum) + `goal_values` **and `habit_goals`** join tables — `habit_goals` had to wait until now since it references `goals(id)`, which didn't exist in step 3
+- [x] Same join-table shape as step 3: composite PKs, `ON DELETE CASCADE`, secondary index on `goal_id` in `habit_goals` (this is the more important direction here — "habits under this goal" is a core query)
+- [x] Model, repository (CRUD; requires ≥1 existing `habit_id` and `value_id` at creation)
+- [x] Handlers + router wiring
+- [x] **Done when:** creating a goal with no habits is rejected; creating one with existing habits works — confirmed 2026-07-29 via curl, including ≥1-value/≥1-habit enforcement (400), nonexistent-habit FK mapping (400), and status transitions via `PUT` with associations surviving the round-trip
 
 ## 5. CheckIn
 
