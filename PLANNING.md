@@ -18,7 +18,7 @@ An earlier attempt lives at [github.com/benroasting/becoming](https://github.com
 
 ## Domain model
 
-- **Value** — long-term identity/character statement. Mostly-fixed but editable set (add/remove/change over time). `status` is `active`/`abandoned` only (terminal, no reactivate) — see [ADR 0001](docs/adr/0001-value-status-lifecycle.md). "Pursuing" vs. "not pursuing" is never stored; it's computed at read time from whether any non-archived Habit/Goal currently links to the value.
+- **Value** — long-term identity/character statement. Mostly-fixed but editable set (add/remove/change over time). `status` is `active`/`abandoned` only (terminal, no reactivate) — see [ADR 0001](backend/docs/adr/0001-value-status-lifecycle.md). "Pursuing" vs. "not pursuing" is never stored; it's computed at read time from whether any non-archived Habit/Goal currently links to the value.
 - **Habit** — the recurring practical action. Many-to-many with Value (**≥1 required**), many-to-many with Goal (**optional**, 0+). Archived via its existing `is_active` flag rather than hard-deleted — CheckIns point at `habit_id`, so hard-deleting would orphan history.
 - **Goal** — a time-bound checkpoint. Many-to-many with Value (**≥1 required**), many-to-many with Habit (**≥1 required** — a goal can't exist with zero habits). Keeps a status enum (active/completed/abandoned/inactive) rather than a separate archive mechanism.
 - **CheckIn** (renames the reference repo's `HabitLog`) — belongs to a Habit. Cadence is derived from the habit's own `Frequency` rather than tracked separately; logged as raw timestamps, with "did I hit this period" computed at read time rather than enforced at write time.
@@ -26,13 +26,13 @@ An earlier attempt lives at [github.com/benroasting/becoming](https://github.com
 
 Two decisions worth remembering the reasoning for:
 1. `POST /goals` requires **existing** `habit_ids` (and `value_ids`) — a goal can't create habits inline. Keeps each resource's endpoint focused on its own entity; you create habits first, then goals that reference them.
-2. Habit archives instead of hard-deleting (via `is_active`); Value has its own terminal `abandoned` status instead ([ADR 0001](docs/adr/0001-value-status-lifecycle.md)); Goal and JournalEntry don't need either treatment (Goal already has a terminal status; nothing references a JournalEntry).
+2. Habit archives instead of hard-deleting (via `is_active`); Value has its own terminal `abandoned` status instead ([ADR 0001](backend/docs/adr/0001-value-status-lifecycle.md)); Goal and JournalEntry don't need either treatment (Goal already has a terminal status; nothing references a JournalEntry).
 
 Single-user for v1 — no auth, no `users` table, deliberately deferred (matches the reference repo's original approach).
 
 ## API surface (v1)
 
-- **Values** — `GET/POST /values`, `GET/PUT /values/{id}`, `POST /values/{id}/abandon` (terminal, no reactivate — [ADR 0001](docs/adr/0001-value-status-lifecycle.md)). No DELETE.
+- **Values** — `GET/POST /values`, `GET/PUT /values/{id}`, `POST /values/{id}/abandon` (terminal, no reactivate — [ADR 0001](backend/docs/adr/0001-value-status-lifecycle.md)). No DELETE.
 - **Habits** — `GET/POST /habits` (`value_ids[]` ≥1, `goal_ids[]` optional), `GET/PUT /habits/{id}`, `POST /habits/{id}/archive`.
 - **Goals** — `GET/POST /goals` (`value_ids[]` ≥1, `habit_ids[]` ≥1, both existing), `GET/PUT /goals/{id}`.
 - **CheckIns** — `POST/GET /habits/{id}/check-ins`.
