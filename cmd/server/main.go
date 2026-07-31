@@ -40,9 +40,13 @@ func main() {
 	habitHandler := handlers.NewHabitHandler(habitRepo)
 	goalRepo := repository.NewGoalRepository(pool)
 	goalHandler := handlers.NewGoalHandler(goalRepo)
+	checkInRepo := repository.NewCheckInRepository(pool)
+	checkInHandler := handlers.NewCheckInHandler(checkInRepo)
+	journalEntryRepo := repository.NewJournalEntryRepository(pool)
+	journalEntryHandler := handlers.NewJournalEntryHandler(journalEntryRepo)
 
 	// router
-	router := handlers.NewRouter(cfg, valueHandler, habitHandler, goalHandler)
+	router := handlers.NewRouter(cfg, valueHandler, habitHandler, goalHandler, checkInHandler, journalEntryHandler)
 
 	// create server
 	server := &http.Server{

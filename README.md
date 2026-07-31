@@ -41,3 +41,17 @@ docker compose exec db psql -U becoming -d becoming -c '\d <table_name>'
 ```
 
 Editing an already-applied migration file does **not** retroactively change the database — `migrate` tracks applied versions and just no-ops on `up` if you're already there. Rolling back and reapplying (`down 1` then `up`) is only safe pre-data, during local dev before anything real is stored. Once this app has data you care about, fix a mistake with a *new* migration (`ALTER TABLE ...`), never by editing or re-running an old one.
+
+### Troubleshooting
+
+**Filenames must match `{version}_{name}.up.sql` / `.down.sql` exactly** — no extra text, no spaces (e.g. a stray `... copy.sql` from a Finder/editor duplicate). `migrate` silently ignores anything that doesn't match the pattern; there's no error, it just never runs. If `up` reports fewer changes than expected, check `ls migrations/` for a file that looks *almost* right.
+
+**If `migrate up` says "no change" but the table isn't actually there:** check the recorded version:
+```
+docker compose exec db psql -U becoming -d becoming -c 'SELECT * FROM schema_migrations;'
+```
+If it shows the version as applied (and not dirty) but the schema doesn't match, that version got marked done against a migration file that didn't do what you think — e.g. running with a `DROP TABLE IF EXISTS` where a `CREATE TABLE` should've been is a harmless no-op that still "succeeds" and gets recorded. Fix by resetting the bookkeeping to the last version you trust, then reapplying:
+```
+migrate -path migrations -database "$DATABASE_URL" force <last_good_version>
+migrate -path migrations -database "$DATABASE_URL" up
+```

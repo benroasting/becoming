@@ -38,17 +38,17 @@ Ordered phases. Each one should be working end-to-end before moving to the next.
 
 ## 5. CheckIn
 
-- [ ] Migration: `check_ins` table (habit_id, completed_at, notes)
-- [ ] Model, repository
-- [ ] Handlers: `POST/GET /habits/{id}/check-ins`
-- [ ] **Done when:** logging a check-in against a weekly habit and a daily habit both work, and history is queryable per habit
+- [x] Migration: `check_ins` table (habit_id, completed_at, notes)
+- [x] Model, repository
+- [x] Handlers: `POST/GET /habits/{id}/check-ins`
+- [x] **Done when:** logging a check-in against a weekly habit and a daily habit both work, and history is queryable per habit — confirmed 2026-07-29 via curl, including default-to-now `completed_at`, an explicit past timestamp, newest-first ordering per habit, and a 404 on a nonexistent habit_id
 
 ## 6. Journal
 
-- [ ] Migration: `journal_entries` table + `journal_values` join table
-- [ ] Model, repository (full CRUD, hard delete OK)
-- [ ] Handlers + router wiring
-- [ ] **Done when:** can create, tag to a value, edit, and delete a journal entry
+- [x] Migration: `journal_entries` table + `journal_values` join table
+- [x] Model, repository (full CRUD, hard delete OK)
+- [x] Handlers + router wiring
+- [x] **Done when:** can create, tag to a value, edit, and delete a journal entry — confirmed 2026-07-31 via curl, including optional tagging (both tagged and untagged creation), editing an entry to remove its tag, hard delete, delete-twice 404, and a 400 on a nonexistent value_id
 
 ## Deferred (post-v1)
 
