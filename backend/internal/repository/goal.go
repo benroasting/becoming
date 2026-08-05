@@ -275,6 +275,9 @@ func (r *GoalRepository) Update(ctx context.Context, goal *models.Goal) error {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
 		}
+		if isCheckViolation(err) {
+			return ErrInvalidValue
+		}
 		return err
 	}
 

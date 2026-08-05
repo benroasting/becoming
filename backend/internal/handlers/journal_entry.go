@@ -106,6 +106,8 @@ func writeJournalEntryError(w http.ResponseWriter, err error, action string) {
 		http.Error(w, "Journal entry not found", http.StatusNotFound)
 	case repository.ErrValueNotFound:
 		http.Error(w, "One or more values not found", http.StatusBadRequest)
+	case repository.ErrInvalidValue:
+		http.Error(w, "Invalid field value", http.StatusBadRequest)
 	default:
 		http.Error(w, "Failed to "+action+" journal entry", http.StatusInternalServerError)
 	}

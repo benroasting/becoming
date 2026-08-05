@@ -11,9 +11,9 @@ brew install golang-migrate
 
 Set `DATABASE_URL` once per shell session so you don't retype it every command:
 ```
-export DATABASE_URL="postgres://becoming:becoming@localhost:5433/becoming?sslmode=disable"
+export DATABASE_URL="postgres://becoming:becoming@localhost:5434/becoming?sslmode=disable"
 ```
-(Port `5433`, not the Postgres default `5432` — this machine already has another project's Postgres bound to `5432`. Matches `docker-compose.yml` and the fallback in `internal/config/config.go`.)
+(Port `5434`, not the Postgres default `5432` — this machine already has another project's Postgres bound to `5432`. Matches `docker-compose.yml` and the fallback in `internal/config/config.go`.)
 
 **Create a new migration** (generates a numbered `.up.sql`/`.down.sql` pair in `migrations/`):
 ```

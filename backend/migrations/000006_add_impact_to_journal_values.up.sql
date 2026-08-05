@@ -1,0 +1,1 @@
+ALTER TABLE journal_values ADD COLUMN impact SMALLINT NOT NULL DEFAULT 0 CHECK (impact IN (-1, 0, 1));

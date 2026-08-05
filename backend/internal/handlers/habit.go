@@ -124,6 +124,8 @@ func writeHabitError(w http.ResponseWriter, err error, action string) {
 		http.Error(w, "At least one value is required", http.StatusBadRequest)
 	case repository.ErrValueNotFound:
 		http.Error(w, "One or more values not found", http.StatusBadRequest)
+	case repository.ErrInvalidValue:
+		http.Error(w, "Invalid field value", http.StatusBadRequest)
 	default:
 		http.Error(w, "Failed to "+action+" habit", http.StatusInternalServerError)
 	}

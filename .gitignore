@@ -1,0 +1,14 @@
+# macOS
+.DS_Store
+
+# Xcode
+mobile/*.xcodeproj/xcuserdata/
+mobile/*.xcodeproj/project.xcworkspace/xcuserdata/
+mobile/*.xcodeproj/project.xcworkspace/xcshareddata/
+mobile/DerivedData/
+mobile/*.xcarchive
+mobile/*.ipa
+mobile/.swiftpm/
+
+# Go
+backend/tmp/

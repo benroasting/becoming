@@ -35,10 +35,12 @@ func (r *JournalEntryRepository) Create(ctx context.Context, entry *models.Journ
 		return err
 	}
 
-	for _, valueID := range entry.ValueIDs {
-		if _, err := tx.Exec(ctx, `INSERT INTO journal_values (journal_entry_id, value_id) VALUES ($1, $2)`, entry.ID, valueID); err != nil {
+	for _, tag := range entry.ValueTags {
+		if _, err := tx.Exec(ctx, `INSERT INTO journal_values (journal_entry_id, value_id, impact) VALUES ($1, $2, $3)`, entry.ID, tag.ValueID, tag.Impact); err != nil {
 			if isForeignKeyViolation(err) {
 				return ErrValueNotFound
+			} else if isCheckViolation(err) {
+				return ErrInvalidValue
 			}
 			return err
 		}
@@ -67,32 +69,32 @@ func (r *JournalEntryRepository) GetByID(ctx context.Context, id string) (*model
 		return nil, err
 	}
 
-	valueIDs, err := r.valueIDsForEntry(ctx, entry.ID)
+	valueTags, err := r.valueTagsForEntry(ctx, entry.ID)
 	if err != nil {
 		return nil, err
 	}
-	entry.ValueIDs = valueIDs
+	entry.ValueTags = valueTags
 
 	return entry, nil
 }
 
-func (r *JournalEntryRepository) valueIDsForEntry(ctx context.Context, entryID string) ([]string, error) {
-	rows, err := r.pool.Query(ctx, `SELECT value_id FROM journal_values WHERE journal_entry_id = $1 ORDER BY value_id`, entryID)
+func (r *JournalEntryRepository) valueTagsForEntry(ctx context.Context, entryID string) ([]models.JournalValueTag, error) {
+	rows, err := r.pool.Query(ctx, `SELECT value_id, impact FROM journal_values WHERE journal_entry_id = $1 ORDER BY value_id`, entryID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	valueIDs := []string{}
+	valueTags := []models.JournalValueTag{}
 	for rows.Next() {
-		var valueID string
-		if err := rows.Scan(&valueID); err != nil {
+		var tag models.JournalValueTag
+		if err := rows.Scan(&tag.ValueID, &tag.Impact); err != nil {
 			return nil, err
 		}
-		valueIDs = append(valueIDs, valueID)
+		valueTags = append(valueTags, tag)
 	}
 
-	return valueIDs, rows.Err()
+	return valueTags, rows.Err()
 }
 
 func (r *JournalEntryRepository) List(ctx context.Context) ([]*models.JournalEntry, error) {
@@ -128,14 +130,14 @@ func (r *JournalEntryRepository) List(ctx context.Context) ([]*models.JournalEnt
 		return nil, err
 	}
 
-	if err := r.attachValueIDs(ctx, entries); err != nil {
+	if err := r.attachValueTags(ctx, entries); err != nil {
 		return nil, err
 	}
 
 	return entries, nil
 }
 
-func (r *JournalEntryRepository) attachValueIDs(ctx context.Context, entries []*models.JournalEntry) error {
+func (r *JournalEntryRepository) attachValueTags(ctx context.Context, entries []*models.JournalEntry) error {
 	if len(entries) == 0 {
 		return nil
 	}
@@ -145,26 +147,27 @@ func (r *JournalEntryRepository) attachValueIDs(ctx context.Context, entries []*
 		ids[i] = entry.ID
 	}
 
-	rows, err := r.pool.Query(ctx, `SELECT journal_entry_id, value_id FROM journal_values WHERE journal_entry_id = ANY($1::uuid[]) ORDER BY value_id`, ids)
+	rows, err := r.pool.Query(ctx, `SELECT journal_entry_id, value_id, impact FROM journal_values WHERE journal_entry_id = ANY($1::uuid[]) ORDER BY value_id`, ids)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	valueIDsByEntry := map[string][]string{}
+	tagsByEntry := map[string][]models.JournalValueTag{}
 	for rows.Next() {
-		var entryID, valueID string
-		if err := rows.Scan(&entryID, &valueID); err != nil {
+		var entryID string
+		var tag models.JournalValueTag
+		if err := rows.Scan(&entryID, &tag.ValueID, &tag.Impact); err != nil {
 			return err
 		}
-		valueIDsByEntry[entryID] = append(valueIDsByEntry[entryID], valueID)
+		tagsByEntry[entryID] = append(tagsByEntry[entryID], tag)
 	}
 	if err := rows.Err(); err != nil {
 		return err
 	}
 
 	for _, entry := range entries {
-		entry.ValueIDs = valueIDsByEntry[entry.ID]
+		entry.ValueTags = tagsByEntry[entry.ID]
 	}
 
 	return nil
@@ -197,10 +200,12 @@ func (r *JournalEntryRepository) Update(ctx context.Context, entry *models.Journ
 		return err
 	}
 
-	for _, valueID := range entry.ValueIDs {
-		if _, err := tx.Exec(ctx, `INSERT INTO journal_values (journal_entry_id, value_id) VALUES ($1, $2)`, entry.ID, valueID); err != nil {
+	for _, tag := range entry.ValueTags {
+		if _, err := tx.Exec(ctx, `INSERT INTO journal_values (journal_entry_id, value_id, impact) VALUES ($1, $2, $3)`, entry.ID, tag.ValueID, tag.Impact); err != nil {
 			if isForeignKeyViolation(err) {
 				return ErrValueNotFound
+			} else if isCheckViolation(err) {
+				return ErrInvalidValue
 			}
 			return err
 		}

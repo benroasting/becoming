@@ -9,7 +9,7 @@ Ordered phases. Each one should be working end-to-end before moving to the next.
 - [x] `internal/config/config.go` — `PORT`, `ENVIRONMENT`, `LOG_LEVEL`, `DATABASE_URL`
 - [x] `internal/database/database.go` — `pgxpool.Pool` from `DATABASE_URL`
 - [x] `internal/handlers/health.go` + `router.go` — Chi router, `/health` only
-- [x] `docker-compose.yml` — Postgres service for local dev (host port 5433, not 5432 — already claimed by another project on this machine)
+- [x] `docker-compose.yml` — Postgres service for local dev (host port 5434, not 5432 — already claimed by another project on this machine)
 - [ ] `migrations/` folder ready, migrate tooling decided (CLI vs programmatic) — carried into step 2, first real migration needed there anyway
 - [x] **Done when:** `docker compose up -d && go run ./cmd/server` then `curl localhost:8081/health` returns 200 (port 8081, not 8080 — also already claimed locally)
 
@@ -49,6 +49,9 @@ Ordered phases. Each one should be working end-to-end before moving to the next.
 - [x] Model, repository (full CRUD, hard delete OK)
 - [x] Handlers + router wiring
 - [x] **Done when:** can create, tag to a value, edit, and delete a journal entry — confirmed 2026-07-31 via curl, including optional tagging (both tagged and untagged creation), editing an entry to remove its tag, hard delete, delete-twice 404, and a 400 on a nonexistent value_id
+
+**Addendum, 2026-08-05:** added an `impact` column (`SMALLINT CHECK (impact IN (-1, 0, 1))`) to `journal_values`, driven by the mobile client's "Journey" design — each value tag on an entry now carries Growth(+1)/Neutral(0)/Setback(-1), feeding a signed cumulative-progress line per value. `models.JournalEntry.ValueIDs []string` became `ValueTags []JournalValueTag` (`{value_id, impact}`); migration `000006`, repository (`Create`/`GetByID`/`List`/`Update`) all updated and confirmed via curl — untagged entries, Growth/Setback tagging, and round-tripping an impact change through `Update` all work. Handler needed zero changes (decodes straight into `models.JournalEntry`).
+**Open TODO:** an out-of-range `impact` (anything besides -1/0/1) is correctly rejected by the DB's `CHECK` constraint, but the repository doesn't catch that specific violation (Postgres code `23514`) the way `isForeignKeyViolation` catches `23503` — so it currently surfaces as a generic 500 instead of a 400. Same gap exists for `Habit.Frequency`/`Goal.Status` elsewhere in the codebase already; not a regression, just worth fixing deliberately at some point since `impact` is a bare int a client could easily send wrong.
 
 ## Deferred (post-v1)
 

@@ -18,7 +18,7 @@ func Load() *Config {
 		Environment: getEnv("ENVIRONMENT", "development"),
 		LogLevel:    parseLogLevel(getEnv("LOG_LEVEL", "info")),
 		DatabaseURL: getEnv("DATABASE_URL",
-			"postgres://becoming:becoming@localhost:5433/becoming?sslmode=disable"),
+			"postgres://becoming:becoming@localhost:5434/becoming?sslmode=disable"),
 	}
 }
 

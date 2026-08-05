@@ -107,6 +107,8 @@ func writeGoalError(w http.ResponseWriter, err error, action string) {
 		http.Error(w, "At least one habit is required", http.StatusBadRequest)
 	case repository.ErrHabitNotFound:
 		http.Error(w, "One or more habits not found", http.StatusBadRequest)
+	case repository.ErrInvalidValue:
+		http.Error(w, "Invalid field value", http.StatusBadRequest)
 	default:
 		http.Error(w, "Failed to "+action+" goal", http.StatusInternalServerError)
 	}

@@ -29,6 +29,11 @@ func isForeignKeyViolation(err error) bool {
 	return errors.As(err, &pgErr) && pgErr.Code == "23503"
 }
 
+func isCheckViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23514"
+}
+
 func (r *HabitRepository) Create(ctx context.Context, habit *models.Habit) error {
 	if len(habit.ValueIDs) == 0 {
 		return ErrValueRequired
@@ -60,6 +65,9 @@ func (r *HabitRepository) Create(ctx context.Context, habit *models.Habit) error
 		reminderMinute,
 	).Scan(&habit.ID, &habit.IsActive, &habit.CreatedAt, &habit.UpdatedAt)
 	if err != nil {
+		if isCheckViolation(err) {
+			return ErrInvalidValue
+		}
 		return err
 	}
 
@@ -281,6 +289,9 @@ func (r *HabitRepository) Update(ctx context.Context, habit *models.Habit) error
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return ErrNotFound
+		}
+		if isCheckViolation(err) {
+			return ErrInvalidValue
 		}
 		return err
 	}
