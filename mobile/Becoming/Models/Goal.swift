@@ -7,11 +7,14 @@
 
 import Foundation
 
-enum GoalStatus: String, Codable {
+enum GoalStatus: String, Codable, CaseIterable, Identifiable {
     case active, completed, abandoned, inactive
+
+    var id: String { rawValue }
+    var label: String { rawValue.capitalized }
 }
 
-nonisolated struct Goal: Codable {
+nonisolated struct Goal: Codable, Identifiable, Hashable {
     let id: String
     let valueIDs: [String]
     let habitIDs: [String]

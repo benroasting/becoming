@@ -7,16 +7,19 @@
 
 import Foundation
 
-enum Frequency: String, Codable {
+enum Frequency: String, Codable, CaseIterable, Identifiable {
     case hourly, daily, weekly, custom
+
+    var id: String { rawValue }
+    var label: String { rawValue.capitalized }
 }
 
-nonisolated struct TimeOfDay: Codable {
+nonisolated struct TimeOfDay: Codable, Hashable {
     let hour: Int
     let minute: Int
 }
 
-nonisolated struct Habit: Codable {
+nonisolated struct Habit: Codable, Identifiable, Hashable {
     let id: String
     let title: String
     let description: String
