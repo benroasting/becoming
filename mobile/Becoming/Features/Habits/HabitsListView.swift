@@ -93,9 +93,24 @@ struct HabitsListView: View {
             } else {
                 List(vm.activeHabits) { habit in
                     row(habit, vm)
+                        .swipeActions(edge: .leading) {
+                            Button("Check in", systemImage: "checkmark") {
+                                Task { await vm.checkIn(habit) }
+                            }
+                            .tint(Theme.accent)
+                        }
                         .swipeActions {
                             Button("Archive", role: .destructive) { pendingArchive = habit }
-                            Button("Edit") { editing = habit }.tint(.blue)
+                            Button("Edit") { editing = habit }.tint(Theme.neutral)
+                        }
+                        .contextMenu {
+                            Button("Check in", systemImage: "checkmark") {
+                                Task { await vm.checkIn(habit) }
+                            }
+                            Button("Edit", systemImage: "pencil") { editing = habit }
+                            Button("Archive", systemImage: "archivebox", role: .destructive) {
+                                pendingArchive = habit
+                            }
                         }
                 }
                 .themedScroll()
@@ -118,17 +133,16 @@ struct HabitsListView: View {
                 }
             }
             Spacer()
-            Button {
-                Task { await vm.checkIn(habit) }
-            } label: {
-                Image(systemName: vm.recentCheckInHabitID == habit.id
-                      ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundStyle(vm.recentCheckInHabitID == habit.id ? Theme.growth : .secondary)
+            // Check-in is an action (swipe right, or press and hold), not a stored state, so
+            // the row only acknowledges it briefly.
+            if vm.recentCheckInHabitID == habit.id {
+                Label("Checked in", systemImage: "checkmark")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+                    .transition(.opacity)
             }
-            .buttonStyle(.borderless)
-            .accessibilityLabel("Check in")
         }
+        .animation(.easeInOut(duration: 0.2), value: vm.recentCheckInHabitID)
         .padding(.vertical, 4)
         .listRowBackground(Theme.card)
     }
