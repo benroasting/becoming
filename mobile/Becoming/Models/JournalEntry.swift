@@ -7,7 +7,21 @@
 
 import Foundation
 
-nonisolated struct JournalValueTag: Codable {
+/// How an entry affected a value. Stored on the wire as -1 / 0 / 1.
+enum Impact: Int, CaseIterable, Identifiable {
+    case setback = -1, neutral = 0, growth = 1
+
+    var id: Int { rawValue }
+    var label: String {
+        switch self {
+        case .setback: "Setback"
+        case .neutral: "Neutral"
+        case .growth: "Growth"
+        }
+    }
+}
+
+nonisolated struct JournalValueTag: Codable, Hashable {
     let valueID: String
     let impact: Int
     
@@ -17,7 +31,7 @@ nonisolated struct JournalValueTag: Codable {
     }
 }
 
-nonisolated struct JournalEntry: Codable {
+nonisolated struct JournalEntry: Codable, Identifiable, Hashable {
     let id: String
     let content: String
     let valueTags: [JournalValueTag]?

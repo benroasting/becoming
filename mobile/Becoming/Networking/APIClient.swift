@@ -25,7 +25,22 @@ nonisolated final class APIClient {
         self.session = session
         
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        // Go's time.Time marshals with fractional seconds (and omits them when zero),
+        // which Foundation's built-in .iso8601 strategy rejects.
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let string = try decoder.singleValueContainer().decode(String.self)
+            if let date = try? Date(string, strategy: .iso8601.year().month().day()
+                .dateTimeSeparator(.standard).time(includingFractionalSeconds: true)
+                .timeZone(separator: .colon)) {
+                return date
+            }
+            if let date = try? Date(string, strategy: .iso8601) {
+                return date
+            }
+            throw DecodingError.dataCorrupted(.init(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unparseable date: \(string)"))
+        }
         self.decoder = decoder
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

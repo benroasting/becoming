@@ -11,7 +11,7 @@ enum ValueStatus: String, Codable {
     case active, abandoned
 }
 
-nonisolated struct Value: Codable {
+nonisolated struct Value: Codable, Identifiable, Hashable {
     let id: String
     let title: String
     let description: String
