@@ -17,6 +17,9 @@ nonisolated struct JourneyDay: Identifiable, Hashable {
     /// The day's overall impact, or nil if nothing was tagged. Several moments on one
     /// day are netted: positive = growth, negative = setback, zero = neutral.
     let impact: Impact?
+    /// Habit check-ins completed that day, across every habit serving this value.
+    /// Shown as a marker only; it never changes `total`.
+    let checkIns: Int
 }
 
 nonisolated struct JourneyMoment: Identifiable, Hashable {
@@ -37,12 +40,16 @@ nonisolated struct ValueJourney {
     var growthCount: Int { moments.filter { $0.impact == .growth }.count }
     var neutralCount: Int { moments.filter { $0.impact == .neutral }.count }
     var setbackCount: Int { moments.filter { $0.impact == .setback }.count }
-    var isEmpty: Bool { moments.isEmpty }
+    /// Total check-ins on days within the timeline.
+    let checkInCount: Int
+    /// Nothing to show: no tagged moments and no check-ins.
+    var isEmpty: Bool { moments.isEmpty && checkInCount == 0 }
 
     /// The next multiple of 5 above the current net (never below +5).
     var nextMilestone: Int { (max(net, 0) / 5 + 1) * 5 }
 
-    init(value: Value, entries: [JournalEntry], now: Date = .now, calendar: Calendar = .current) {
+    /// - Parameter checkIns: check-ins of the habits that serve `value` (already filtered).
+    init(value: Value, entries: [JournalEntry], checkIns: [CheckIn] = [], now: Date = .now, calendar: Calendar = .current) {
         var tagged: [JourneyMoment] = []
         for entry in entries {
             for tag in entry.valueTags ?? [] where tag.valueID == value.id {
@@ -58,7 +65,8 @@ nonisolated struct ValueJourney {
 
         let ascending = tagged.sorted { $0.date < $1.date }
         let today = calendar.startOfDay(for: now)
-        let earliest = min(value.createdAt, ascending.first?.date ?? value.createdAt)
+        let earliest = min(value.createdAt, ascending.first?.date ?? value.createdAt,
+                           checkIns.map(\.completedAt).min() ?? value.createdAt)
         let firstDay = min(calendar.startOfDay(for: earliest), today)
 
         var deltaByDay: [Date: Int] = [:]
@@ -66,19 +74,28 @@ nonisolated struct ValueJourney {
             deltaByDay[calendar.startOfDay(for: moment.date), default: 0] += moment.impact.rawValue
         }
 
+        var checkInsByDay: [Date: Int] = [:]
+        for checkIn in checkIns {
+            checkInsByDay[calendar.startOfDay(for: checkIn.completedAt), default: 0] += 1
+        }
+
         var days: [JourneyDay] = []
+        var checkInCount = 0
         var running = 0
         var day = firstDay
         while day <= today {
             let delta = deltaByDay[day]
             if let delta { running += delta }
             let impact: Impact? = delta.map { $0 > 0 ? .growth : $0 < 0 ? .setback : .neutral }
-            days.append(JourneyDay(date: day, total: running, impact: impact))
+            let count = checkInsByDay[day] ?? 0
+            checkInCount += count
+            days.append(JourneyDay(date: day, total: running, impact: impact, checkIns: count))
             guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
             day = next
         }
 
         self.days = days
+        self.checkInCount = checkInCount
         self.moments = ascending.reversed()
     }
 }

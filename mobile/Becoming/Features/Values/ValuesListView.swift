@@ -8,6 +8,8 @@ import SwiftUI
 struct ValuesListView: View {
     @Environment(\.valueService) private var service
     @Environment(\.journalService) private var journalService
+    @Environment(\.habitService) private var habitService
+    @Environment(\.checkInService) private var checkInService
     @State private var viewModel: ValuesViewModel?
     @State private var showingNew = false
     @State private var editing: Value?
@@ -24,7 +26,12 @@ struct ValuesListView: View {
             }
             .screenBackground()
             .navigationDestination(for: Value.self) { value in
-                ValueDetailView(value: value, journalService: journalService)
+                ValueDetailView(
+                    value: value,
+                    journalService: journalService,
+                    habitService: habitService,
+                    checkInService: checkInService
+                )
             }
             .navigationTitle("Values")
             .toolbar {
@@ -90,7 +97,7 @@ struct ValuesListView: View {
                         NavigationLink(value: value) { row(value) }
                             .swipeActions {
                                 Button("Abandon", role: .destructive) { pendingAbandon = value }
-                                Button("Edit") { editing = value }.tint(.blue)
+                                Button("Edit") { editing = value }.tint(Theme.neutral)
                             }
                     }
                 }

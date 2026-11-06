@@ -8,8 +8,16 @@ import SwiftUI
 struct ValueDetailView: View {
     @State private var viewModel: ValueJourneyViewModel
 
-    init(value: Value, journalService: any JournalServicing) {
-        _viewModel = State(initialValue: ValueJourneyViewModel(value: value, service: journalService))
+    init(value: Value,
+         journalService: any JournalServicing,
+         habitService: any HabitServicing,
+         checkInService: any CheckInServicing) {
+        _viewModel = State(initialValue: ValueJourneyViewModel(
+            value: value,
+            journalService: journalService,
+            habitService: habitService,
+            checkInService: checkInService
+        ))
     }
 
     var body: some View {
@@ -57,7 +65,7 @@ struct ValueDetailView: View {
                             legend
                         }
                     }
-                    moments(journey)
+                    if !journey.moments.isEmpty { moments(journey) }
                 }
             }
         }
@@ -69,7 +77,7 @@ struct ValueDetailView: View {
                 Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.largeTitle).foregroundStyle(.secondary)
                 Text("No journey yet").font(Theme.serif(.headline))
-                Text("Tag this value in a journal entry as Growth, Neutral or Setback, and your progress will start to take shape here.")
+                Text("Tag this value in a journal entry as Growth, Neutral or Setback, or check in a habit that serves it, and your progress will start to take shape here.")
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -84,6 +92,10 @@ struct ValueDetailView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .labelStyle(LegendLabelStyle(color: impact.color))
+            }
+            HStack(spacing: 6) {
+                Circle().fill(.primary.opacity(0.55)).frame(width: 5, height: 5)
+                Text("Habit check-in").font(.caption2).foregroundStyle(.secondary)
             }
         }
     }

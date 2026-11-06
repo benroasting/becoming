@@ -89,7 +89,7 @@ struct GoalsListView: View {
                                         .tint(Theme.growth)
                                     }
                                     .swipeActions {
-                                        Button("Edit") { editing = goal }.tint(.blue)
+                                        Button("Edit") { editing = goal }.tint(Theme.neutral)
                                     }
                             }
                         }
@@ -100,7 +100,7 @@ struct GoalsListView: View {
                                 row(goal, vm)
                                     .foregroundStyle(.secondary)
                                     .swipeActions {
-                                        Button("Edit") { editing = goal }.tint(.blue)
+                                        Button("Edit") { editing = goal }.tint(Theme.neutral)
                                     }
                             }
                         }

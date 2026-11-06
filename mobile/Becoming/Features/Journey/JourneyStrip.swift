@@ -24,7 +24,7 @@ struct JourneyStrip: View {
     private let trackHeight: CGFloat = 130
     private let gap: CGFloat = 34
     private let cellHeight: CGFloat = 26
-    private let axisHeight: CGFloat = 34
+    private let axisHeight: CGFloat = 42
 
     @State private var position = ScrollPosition(edge: .leading)
 
@@ -161,8 +161,20 @@ struct JourneyStrip: View {
                                width: dayWidth, height: cellHeight + 4)
         context.stroke(Path(roundedRect: todayRect, cornerRadius: 8), with: .color(.primary), lineWidth: 1.5)
 
+        // Habit check-ins: up to three small dots under the day's cell. Marker only.
+        for (i, day) in days.enumerated() where day.checkIns > 0 {
+            let dots = min(day.checkIns, 3)
+            let spacing: CGFloat = 6
+            let startX = x(i) - CGFloat(dots - 1) * spacing / 2
+            for d in 0..<dots {
+                let center = CGPoint(x: startX + CGFloat(d) * spacing, y: heatTop + cellHeight + 8)
+                context.fill(Path(ellipseIn: CGRect(x: center.x - 2.25, y: center.y - 2.25, width: 4.5, height: 4.5)),
+                             with: .color(.primary.opacity(0.55)))
+            }
+        }
+
         // Axis: a date every week, then TODAY.
-        let axisY = heatTop + cellHeight + 14
+        let axisY = heatTop + cellHeight + 24
         for i in stride(from: todayIndex, through: 0, by: -7) where i != todayIndex {
             if todayIndex - i < 4 { continue }
             context.draw(
