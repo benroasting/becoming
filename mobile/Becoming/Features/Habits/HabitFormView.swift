@@ -93,9 +93,11 @@ struct HabitFormView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .toolbarButtonFont()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { Task { await save() } }
+                        .toolbarButtonFont(emphasized: true)
                         .disabled(!canSave)
                 }
             }
