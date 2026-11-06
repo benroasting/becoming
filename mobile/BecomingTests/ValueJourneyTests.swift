@@ -28,8 +28,16 @@ struct ValueJourneyTests {
         )
     }
 
-    private func journey(_ entries: [JournalEntry], now: Int = 10) -> ValueJourney {
-        ValueJourney(value: value(), entries: entries, now: day(now), calendar: cal)
+    private func journey(_ entries: [JournalEntry], checkIns: [CheckIn] = [], now: Int = 10) -> ValueJourney {
+        ValueJourney(value: value(), entries: entries, checkIns: checkIns, now: day(now), calendar: cal)
+    }
+
+    private func checkIn(_ id: String, day n: Int) -> CheckIn {
+        CheckIn(id: id, habitID: "h1", notes: "", completedAt: day(n), createdAt: day(n))
+    }
+
+    private func checkIns(_ j: ValueJourney, on n: Int) -> Int? {
+        j.days.first { $0.date == cal.startOfDay(for: day(n)) }?.checkIns
     }
 
     private func total(_ j: ValueJourney, on n: Int) -> Int? {
@@ -117,5 +125,40 @@ struct ValueJourneyTests {
         #expect(net(5) == 10)
         #expect(net(0) == 5)
         #expect(net(-2) == 5)
+    }
+
+    @Test func checkInsAreCountedPerDay() {
+        let j = journey([], checkIns: [checkIn("a", day: 2), checkIn("b", day: 2), checkIn("c", day: 4)])
+        #expect(checkIns(j, on: 2) == 2)
+        #expect(checkIns(j, on: 4) == 1)
+        #expect(checkIns(j, on: 3) == 0)
+        #expect(j.checkInCount == 3)
+    }
+
+    @Test func checkInsNeverChangeTheTrail() {
+        let entries = [entry("a", day: 1, tags: [("v1", 1)]), entry("b", day: 3, tags: [("v1", -1)])]
+        let without = journey(entries)
+        let with = journey(entries, checkIns: (0..<20).map { checkIn("c\($0)", day: $0 % 10) })
+        #expect(with.days.map(\.total) == without.days.map(\.total))
+        #expect(with.days.map(\.impact) == without.days.map(\.impact))
+        #expect(with.net == without.net)
+        #expect(with.nextMilestone == without.nextMilestone)
+    }
+
+    @Test func checkInsAloneAreNotEmptyButHaveNoNet() {
+        let j = journey([], checkIns: [checkIn("a", day: 5)])
+        #expect(!j.isEmpty)
+        #expect(j.moments.isEmpty)
+        #expect(j.net == 0)
+    }
+
+    @Test func noEntriesAndNoCheckInsIsEmpty() {
+        #expect(journey([], checkIns: []).isEmpty)
+    }
+
+    @Test func earlyCheckInExtendsTimelineBack() {
+        // Value created day 0; a check-in explicitly dated before that still gets a cell.
+        let j = journey([], checkIns: [checkIn("a", day: -3)])
+        #expect(j.days.first?.date == cal.startOfDay(for: day(-3)))
     }
 }
